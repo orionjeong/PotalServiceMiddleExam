@@ -17,8 +17,10 @@ public class ProductDao {
         Product product = null;
         try {
             connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement("select * from product where id = ?");
-            preparedStatement.setLong(1, id);
+
+            StatementStrategy statementStrategy = new GetStatementStrategy(id);
+            preparedStatement = statementStrategy.makeStatement(connection);
+
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()){
                 product = new Product();
@@ -57,14 +59,11 @@ public class ProductDao {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-
         long id;
         try {
             connection = dataSource.getConnection();
-
-            preparedStatement = connection.prepareStatement("insert into product(title, price) values(? , ?)", Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, product.getTitle());
-            preparedStatement.setInt(2, product.getPrice());
+            StatementStrategy statementStrategy = new InsertStatementStrategy(product);
+            preparedStatement= statementStrategy.makeStatement(connection);
 
             preparedStatement.executeUpdate();
             resultSet = preparedStatement.getGeneratedKeys();
@@ -100,15 +99,12 @@ public class ProductDao {
     }
 
     public void update(Product product) throws SQLException {
+        StatementStrategy statementStrategy = new UpdateStatementStrategy(product);
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
             connection = dataSource.getConnection();
-
-            preparedStatement = connection.prepareStatement("update product set title = ?, price = ? where id = ?");
-            preparedStatement.setString(1, product.getTitle());
-            preparedStatement.setInt(2, product.getPrice());
-            preparedStatement.setLong(3, product.getId());
+            preparedStatement = statementStrategy.makeStatement(connection);
             preparedStatement.executeUpdate();
         } finally {
             if (preparedStatement != null) {
@@ -132,12 +128,12 @@ public class ProductDao {
 
 
     public void delete(long id) throws SQLException {
+        StatementStrategy statementStrategy = new DeleteStatementStrategy(id);
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
             connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement("delete from product where id = ?");
-            preparedStatement.setLong(1, id);
+            preparedStatement =statementStrategy.makeStatement(connection);
             preparedStatement.executeUpdate();
         } finally {
             if (preparedStatement != null) {

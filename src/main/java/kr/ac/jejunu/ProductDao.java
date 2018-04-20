@@ -3,7 +3,11 @@ package kr.ac.jejunu;
 import java.sql.*;
 
 public class ProductDao {
-    private final ConncetionMaker connectionMaker = new JejuConnectionMaker();
+    private  ConncetionMaker connectionMaker;
+
+    public ProductDao(ConncetionMaker connectionMaker) {
+        this.connectionMaker = connectionMaker;
+    }
 
     public Product get(Long id) throws ClassNotFoundException, SQLException {
         Connection connection = connectionMaker.getConnection();

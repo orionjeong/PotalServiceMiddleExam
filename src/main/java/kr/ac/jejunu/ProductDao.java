@@ -5,50 +5,37 @@ import java.sql.*;
 
 public class ProductDao {
     private final JdbcContext jdbcContext = new JdbcContext();
+    private String sql;
+    private String sql1;
+    private String sql2;
+    private String sql3;
 
     public ProductDao(DataSource dataSource) {
         this.jdbcContext.dataSource = dataSource;
     }
 
     public Product get(Long id) throws SQLException {
-        StatementStrategy statementStrategy = connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement("select * from product where id = ?");
-            preparedStatement.setLong(1, id);
-            return  preparedStatement;
-        };
-        return jdbcContext.jdbcContextForGet(statementStrategy);
+        String sql = "select * from product where id = ?";
+        Object params[] = new Object[]{id};
+        return jdbcContext.queryForObject(sql, params);
     }
 
     public long insert(Product product) throws SQLException {
-        StatementStrategy statementStrategy = connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement("insert into product(title, price) values(? , ?)", Statement.RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, product.getTitle());
-            preparedStatement.setInt(2, product.getPrice());
-            return preparedStatement;
-        };
-        return jdbcContext.jdbcContextForInsert(statementStrategy);
+        String sql = "insert into product(title, price) values(? , ?)";
+        Object params[] = new Object[]{product.getTitle(), product.getPrice()};
+        return jdbcContext.insert(sql, params);
     }
 
-
     public void update(Product product) throws SQLException {
-        StatementStrategy statementStrategy = connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement("update product set title = ?, price = ? where id = ?");
-            preparedStatement.setString(1, product.getTitle());
-            preparedStatement.setInt(2, product.getPrice());
-            preparedStatement.setLong(3, product.getId());
-            return preparedStatement;
-        };
-        jdbcContext.jdbcContextForUpdate(statementStrategy);
+        String sql = "update product set title = ?, price = ? where id = ?";
+        Object params[] = new Object[]{product.getTitle(), product.getPrice(), product.getId()};
+        jdbcContext.update(sql, params);
     }
 
     public void delete(long id) throws SQLException {
-        StatementStrategy statementStrategy = connection -> {
-            PreparedStatement preparedStatement = connection.prepareStatement("delete from product where id = ?");
-            preparedStatement.setLong(1, id);
-            return preparedStatement;
-        };
-
-        jdbcContext.jdbcContextForUpdate(statementStrategy);
+        String sql = "delete from product where id = ?";
+        Object params[] = new Object[]{id};
+        jdbcContext.update(sql, params);
     }
 
 }
